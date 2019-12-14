@@ -47,4 +47,6 @@ public class Game {
         return dto;
     }
 
+    public Object getCreationDate() {
+    }
 }

@@ -168,16 +168,13 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/**").permitAll()
                 .antMatchers("/rest/**").hasAuthority("ADMIN")
                 .antMatchers("/api/**").hasAnyAuthority("ADMIN", "USER")
-                .antMatchers("/web/game.html").hasAnyAuthority("ADMIN", "USER")
-                .and()
-                .formLogin()
-                .usernameParameter("name")
-                .passwordParameter("pwd")
-                .loginPage("/api/login")
-                .permitAll()
-                .and()
-                .logout()
-                .permitAll();
+                .antMatchers("/web/game.html").hasAnyAuthority("ADMIN", "USER");
+
+        http.formLogin()
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .loginPage("/api/login");
+
         http.logout().logoutUrl("/api/logout");
 // turn off checking for CSRF tokens
         http.csrf().disable();

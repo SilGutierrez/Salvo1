@@ -31,6 +31,11 @@ public class Player {
     //constructor
     public Player(){}
 
+    public Player(String userName, String passWord){
+        this.userName = userName;
+        this.passWord = passWord;
+    }
+
     public Player(String userName, String firstName, String lastName, String email, String passWord) {
         this.userName = userName;
         this.firstName = firstName;
@@ -50,7 +55,7 @@ public class Player {
     public Map<String, Object> getPlayerData() {
         Map<String, Object> dto = new LinkedHashMap<String, Object>();
         dto.put("playerId", getId());
-        dto.put("email", getEmail());
+        dto.put("userName", getUserName());
         return dto;
     }
 

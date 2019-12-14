@@ -1,3 +1,41 @@
+function loguearse(){
+    let formdata = new FormData(document.querySelector("#forms-users"))
+    fetch('/api/login',{
+        method: 'POST',
+        body:formdata
+    }).then(function(response){
+        if(response.ok){
+            console.log("nice")
+        }
+    })
+}
+
+function logout(){
+    fetch('/api/logout',{
+            method: 'POST',
+        }).then(function(response){
+            if(response.ok){
+                console.log("nice")
+            }
+        })
+}
+
+function registrarse(){
+    let formdata = new FormData(document.querySelector("#forms-users"))
+    fetch('/api/players',{
+        method: 'POST',
+        body:formdata
+    }).then(function(response){
+        if(response.ok){
+            loguearse()
+            console.log("nice")
+        }else{
+            console.log(response.text())
+        }
+    })
+}
+
+
 $(function() {
 
   // display text in the output area

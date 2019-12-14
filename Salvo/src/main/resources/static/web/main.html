@@ -30,14 +30,26 @@
 
 <pre id="output"></pre>
 
-<form name="from login">
+<form id="forms-users" name="from login">
 
       <label for="username">Usuario<input type="text" name="username" id="username"></label>
       <label for="password">Contraseña<input type="text" name="password" id="password"></label>
       <button type="button" onclick="loguearse()">Loguearse</button>
       <button type="button" onclick="registrarse()">Registrarse</button>
+      <button type="button" onclick="logout()">logout</button>
 
 </form>
+
+<h2>Games</h2>
+<div id="table"></div>
+
+<h2>Leaderboard</h2>
+<div id="game_score"></div>
+
+
+
+
+
 
 
 <script src="https://code.jquery.com/jquery-2.2.0.js"></script>
