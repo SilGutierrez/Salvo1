@@ -1,6 +1,5 @@
 package com.salvo.salvo;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -47,6 +46,7 @@ public class Game {
         return dto;
     }
 
-    public Object getCreationDate() {
+    public LocalDate getCreationDate() {
+    return date;
     }
 }

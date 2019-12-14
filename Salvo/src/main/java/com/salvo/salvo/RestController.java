@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -55,21 +56,22 @@ public class RestController {
         ResponseEntity<Map<String, Object>> response;
 
         if (isGuest(authentication)) {
-            response = new ResponseEntity<>(makeMap("error", "You must logged in first"), HttpStatus.UNAUTHORIZED);
+            response = new ResponseEntity(makeMap("error", "You must logged in first"), HttpStatus.UNAUTHORIZED);
         } else {
 
             Player player = playerRepository.findPlayerByUserName(authentication.getName());
-            Game newGame = gameRepository.save(new Game(LocalDateTime.now()));
-            GamePlayer newGamePlayer = gamePlayerRepository.save(new GamePlayer(newGame, player, newGame.getCreationDate()));
+            Game newGame = gameRepository.save(new Game());
+            GamePlayer newGamePlayer = gamePlayerRepository.save(new GamePlayer(player, newGame));
 
 
-            response = new ResponseEntity<>(makeMap("gpId", newGamePlayer.getId()), HttpStatus.CREATED);
+            response = new ResponseEntity(makeMap("gpId", String.valueOf(newGamePlayer.getId())), HttpStatus.CREATED);
         }
         return response;
 
     }
 
     private Object makeMap(String error, String you_must_logged_in_first) {
+    return null;
     }
 
 
