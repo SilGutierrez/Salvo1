@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,10 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @org.springframework.web.bind.annotation.RestController
@@ -39,7 +37,7 @@ public class RestController {
         return authentication == null || authentication instanceof AnonymousAuthenticationToken;
     }
 
-    @RequestMapping("/api/games")
+    @RequestMapping(path = "/api/games", method = RequestMethod.GET)
     public Map<String,Object> getAllGames(Authentication authentication) {
         Map<String, Object> dto = new LinkedHashMap<>();
         if(isGuest(authentication)){
@@ -51,23 +49,20 @@ public class RestController {
         return dto;
     }
 
-    @RequestMapping(path = "/games", method = RequestMethod.POST)
+    @RequestMapping(path = "/api/games", method = RequestMethod.POST)
     public ResponseEntity<Map<String, Object>> createGame(Authentication authentication) {
-        ResponseEntity<Map<String, Object>> response;
+        ResponseEntity response;
 
         if (isGuest(authentication)) {
             response = new ResponseEntity(makeMap("error", "You must logged in first"), HttpStatus.UNAUTHORIZED);
         } else {
-
             Player player = playerRepository.findPlayerByUserName(authentication.getName());
             Game newGame = gameRepository.save(new Game());
             GamePlayer newGamePlayer = gamePlayerRepository.save(new GamePlayer(player, newGame));
 
-
             response = new ResponseEntity(makeMap("gpId", String.valueOf(newGamePlayer.getId())), HttpStatus.CREATED);
         }
         return response;
-
     }
 
     private Object makeMap(String error, String you_must_logged_in_first) {
@@ -115,6 +110,42 @@ public class RestController {
 
         playerRepository.save(new Player(username, passwordEncoder.encode(password)));
         return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @RequestMapping(value = "/api/games/{id}/players", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, Object>> joinGame(@PathVariable("id") Long idGame) {
+
+        System.out.println(idGame);
+        Map<String, Object> dto = new LinkedHashMap<>();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (isGuest(authentication)) {
+            dto.put("Error", "No hay game");
+            return new ResponseEntity<>(dto, HttpStatus.FORBIDDEN);
+        }else{
+            Optional<Game> gameSearched = gameRepository.findById(idGame);
+            if (gameSearched.isPresent()) {
+                Game gameAux = gameSearched.get();
+                Player player = playerRepository.findPlayerByUserName(authentication.getName());
+                if (gameAux.getGamePlayersSet().size() <= 2) {
+                    if (gameAux.getGamePlayersSet().stream().anyMatch(e -> e.getPlayer().getId() == player.getId())) {
+                        dto.put("error", "usuario existente en el juego");
+                        return new ResponseEntity<>(dto, HttpStatus.FORBIDDEN);
+                    } else {
+                        GamePlayer newGamePlayer = new GamePlayer(player, gameSearched.get());
+                        gamePlayerRepository.save(newGamePlayer);
+                        dto.put("id", newGamePlayer.getId());
+                        return new ResponseEntity<>(dto, HttpStatus.CREATED);
+                    }
+                } else {
+                    dto.put("error", "Game is Full");
+                    return new ResponseEntity<>(dto, HttpStatus.FORBIDDEN);
+                }
+            } else {
+                dto.put("error", "Game Not Exist");
+                return new ResponseEntity<>(dto, HttpStatus.FORBIDDEN);
+            }
+        }
+
     }
 
 

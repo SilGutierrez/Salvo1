@@ -49,4 +49,8 @@ public class Game {
     public LocalDate getCreationDate() {
     return date;
     }
+
+    public Set<GamePlayer> getGamePlayersSet() {
+        return this.gamePlayerSet;
+    }
 }
