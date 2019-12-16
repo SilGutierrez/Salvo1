@@ -6,6 +6,7 @@ function loguearse() {
   }).then(function (response) {
     if (response.ok) {
       console.log("nice")
+      location.reload();
     }
   })
 }
@@ -47,15 +48,23 @@ $(function () {
   // load and display JSON sent by server for /players
 
   function loadData() {
-    $.get("/api/games")
-      .done(function (data) {
+    fetch("/api/games", {
+        method: 'GET'
+      }).then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error(response);
+      })
+      .then(function (data) {
+        console.log(data);
         showOutput(JSON.stringify(data, null, 2));
         tabla_games(data);
         chargeTableGames(data);
       })
-      .fail(function (jqXHR, textStatus) {
-        showOutput("Failed: " + textStatus);
-      });
+      .catch(ex => {
+        console.log(ex)
+      })
   }
 
   // handler for when user clicks add person
@@ -149,13 +158,14 @@ function chargeTableGames(data) {
   let games = data.games;
   let user = data.player;
   if (user != "guest") {
-    const table = document.getElementById("game_list")
+    const table = document.getElementById("game_list");
     userData = user;
 
     let html = '';
     console.log(userData);
 
     games.forEach(element => {
+      console.log(element.gamePlayers);
       html += '<tr>';
       element.gamePlayers.forEach((aux, index) => {
         html += `<td>${aux.player.userName}</td>`
@@ -209,4 +219,109 @@ function intoGame(gameId) {
       console.log(ex);
     })
 
+}
+
+function creategame() {
+  fetch("/api/games", {
+      method: 'POST'
+    }).then(function (response) {
+      console.log(response);
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error(response);
+    })
+    .then(function (data) {
+      sendTo(data.gpId);
+    })
+    .catch(ex => console.log(ex));
+}
+
+function scoreTable(scores) {
+
+  let info = document.getElementById('game_score')
+  let table = ""
+  table = `<table class="table table-bordered text-light">
+                                              <thead class="thead-dark">
+                                                  <tr>
+                                                      <th>Name</th>
+                                                      <th>Total</th>
+                                                      <th>Won</th>
+                                                      <th>Lost</th>
+                                                      <th>Tied</th>
+                                                  </tr>
+                                              </thead>
+                                              <tbody>
+                                              `
+
+  for (let i = 0; i < scores.length; i++) {
+    table += `<tr>
+                              <td>${scores[i].name} </td>
+                              <td>${scores[i].total} </td>
+                              <td>${scores[i].won} </td>
+                              <td>${scores[i].lost} </td>
+                              <td>${scores[i].tied} </td>
+                              </tr>
+                              `
+  }
+  table += "</tbody> </table>"
+  info.innerHTML = table
+}
+
+
+
+
+function table() {
+  console.log(data)
+  let info = document.getElementById('table')
+  let table = ""
+  table = `
+  <table class="table table-bordered text-light">
+
+                                <thead class="thead-dark">
+                                   <tr>
+                                       <th>Game ID</th>
+                           <th>Creation Date</th>
+                           <th>Players</th>
+                          </tr>
+                        </thead>
+                        <tbody>`
+  for (let i = 0; i < data.length; i++) {
+
+    let gpid = null
+    let gameId = null
+
+    if (player == "guest" || (data[i].gameplayers.length == 2 && data[i].gameplayers.every(e => e.player.id_player != player.id_player))) {
+      table += `
+      <tr>
+        <td>${data[i].id}</td>
+        <td>${data[i].creationDate}</td>
+        <td>${data[i].gameplayers.map(e => e.player.username).join(" <br /> ")}</td>
+      </tr>`
+    } else if (data[i].gameplayers.some(e => e.player.id_player == player.id_player)) {
+      gpid = data[i].gameplayers.filter(e => e.player.id_player == player.id_player)[0].id_gamePlayer
+      table += `
+      <tr>
+        <td>${data[i].id}</td>
+        <td>${data[i].creationDate}</td>
+        <td>${data[i].gameplayers.map(e => e.player.username).join(" <br /> ")}</td>
+        <td><button onclick="enterGame(${gpid})">Enter</button></td>
+      </tr>`
+    } else if (data[i].gameplayers.length == 1) {
+      gameId = data[i].id
+      table += `
+      <tr>
+        <td>${data[i].id}</td>
+        <td>${data[i].creationDate}</td>
+        <td>${data[i].gameplayers.map(e => e.player.username).join(" <br /> ")}</td>
+        <td><button onclick="joinGame(${gameId})">Join Game</button></td>
+      </tr>`
+    }
+  }
+  table += "</tbody> </table>"
+  info.innerHTML = table
+}
+
+function enterGame(gpid) {
+  window.location.href = '/web/game.html?gp=' + gpid
 }

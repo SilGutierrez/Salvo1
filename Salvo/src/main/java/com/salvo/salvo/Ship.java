@@ -56,7 +56,15 @@ public class Ship {
             this.gamePlayer = gameplayer;
         }
 
-        public Map<String, Object> getShipData(){
+    public List<String> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(List<String> locations) {
+        this.locations = locations;
+    }
+
+    public Map<String, Object> getShipData(){
             Map<String, Object> dto = new LinkedHashMap<>();
             dto.put("type", type);
             dto.put("locations", locations);

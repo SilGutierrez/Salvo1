@@ -6,18 +6,19 @@ let opositor = '';
 var oponentObject;
 var localObject;
 
-fetch("/api/game_view/"+gp)
-.then(function(res){
-    if(res.ok){
-        return res.json()
-    }
-})
-.then(function(json){
-    console.log(json);
-    data(json.gamePlayer)
-    ship(json.ship);
-    salvo(json.salvoes);
-})
+fetch("/api/game_view/" + gp)
+    .then(function (res) {
+        if (res.ok) {
+            return res.json()
+        }
+    })
+    .then(function (json) {
+        console.log(json);
+        data(json.gamePlayer)
+        ship(json.ship);
+        salvo(json.salvoes);
+    })
+    .catch(ex => console.log(ex));
 
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
@@ -29,159 +30,119 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
-function salvo(json){
-for (let i = 0; i < json.length; i++){
+function salvo(json) {
+    for (let i = 0; i < json.length; i++) {
 
-    if(json[i].player == jugador.playerId){
-    let location = json[i].locations;
+        if (json[i].player == jugador.playerId) {
+            let location = json[i].locations;
 
-    json[i].locations.forEach(element => {
-       console.log(element);
-       document.getElementById(`salvo${element}`).style.backgroundColor="red";
-    });
-    }else{
-        let location = json[i].locations;
+            json[i].locations.forEach(element => {
+                console.log(element);
+                document.getElementById(`salvo${element}`).style.backgroundColor = "red";
+            });
+        } else {
+            let location = json[i].locations;
 
-        json[i].locations.forEach(element => {
-           console.log(element);
-           document.getElementById(`ships${element}`).style.backgroundColor="red";
-        });
-    }
-
-
-
-    }
-}
-
-function ship(json){
-
-   for (let i = 0; i < json.length; i++){
-        console.log(json[i])
-        let location = json[i].locations;
-        let firstLocation = location[0];
-        let secondLocation = location[1];
-        if (firstLocation[0] == secondLocation[0]){
-            createShips(json[i].type,location.length,'horizontal', document.getElementById('ships' + location[0]),true);
-        } else{
-           createShips(json[i].type , location.length , 'vertical' ,  document.getElementById('ships' + location[0]) , true);
+            json[i].locations.forEach(element => {
+                console.log(element);
+                document.getElementById(`ships${element}`).style.backgroundColor = "red";
+            });
         }
 
-   }
+
+
+    }
 }
 
-        function data (json){
+function ship(json) {
 
-                for (let i = 0; i < json.length; i++){
+    if (json.length != 0) {
+        for (let i = 0; i < json.length; i++) {
+            console.log(json[i])
+            let location = json[i].locations;
+            let firstLocation = location[0];
+            let secondLocation = location[1];
+            if (firstLocation[0] == secondLocation[0]) {
+                createShips(json[i].type, location.length, 'horizontal', document.getElementById('ships' + location[0]), true);
+            } else {
+                createShips(json[i].type, location.length, 'vertical', document.getElementById('ships' + location[0]), true);
+            }
 
-                if(json[i].gamePlayerId == gp){
-                jugador = json[i].player
-                createGamePlayer(json[i].player.email, 'jugador1',document.getElementById("jugador"));
+        }
+    } else {
+        createShips('carrier', 5, 'horizontal', document.getElementById('dock'), false)
+        createShips('battleship', 4, 'horizontal', document.getElementById('dock'), false)
+        createShips('submarine', 3, 'horizontal', document.getElementById('dock'), false)
+        createShips('destroyer', 3, 'horizontal', document.getElementById('dock'), false)
+        createShips('patrol_boat', 2, 'horizontal', document.getElementById('dock'), false)
+    }
 
-                }else{
-                opositor = json[i].player
-                createGamePlayer(json[i].player.email, 'opositor',document.getElementById("opositor"));
+}
+
+function data(json) {
+
+    for (let i = 0; i < json.length; i++) {
+
+        if (json[i].gamePlayerId == gp) {
+            jugador = json[i].player
+            createGamePlayer(json[i].player.email, 'jugador1', document.getElementById("jugador"));
+
+        } else {
+            opositor = json[i].player
+            createGamePlayer(json[i].player.email, 'opositor', document.getElementById("opositor"));
+        }
+
+    }
+}
+
+function createGamePlayer(email, text, element) {
+    element.innerHTML = text + ": " + email
+}
+
+const ships = ['carrier', 'battleship', 'submarine', 'destroyer', 'patrol_boat'];
+
+var shipsLocated = [];
+document.getElementById("collect-boats").addEventListener("click", function () {
+    collectShips();
+    sendShips();
+});
+
+function collectShips() {
+    for (let i = 0; i < ships.length; i++) {
+        let shipObject = {
+            type: "",
+            locations: []
+        }
+        let ship = document.getElementById(ships[i]);
+        if (ship.dataset.y != undefined && ship.dataset.x != undefined) {
+            shipObject.type = ship.id;
+
+            let config = document.getElementsByClassName(`${ships[i]}-busy-cell`);
+
+            for (let i = 0; i < config.length; i++) {
+                shipObject.locations.push(config[i].dataset.y + config[i].dataset.x);
+            }
+            shipsLocated.push(shipObject);
+        }
+    }
+}
+
+function sendShips() {
+    if (shipsLocated.length == 5) {
+        var idGamePlayer = getParameterByName('gp');
+        fetch(`/api/games/players/${idGamePlayer}/ships`, {
+                method: 'POST',
+                body: JSON.stringify(shipsLocated),
+                headers: {
+                    'Content-Type': 'application/json'
                 }
-
-           }
-        }
-
-
-        function createGamePlayer(email,text,element){
-            element.innerHTML = text + ": " + email
-        }
-
-             function scoreTable(scores){
-
-                        let info = document.getElementById('game_score')
-                        let table = ""
-                                        table = `<table class="table table-bordered text-light">
-                                                <thead class="thead-dark">
-                                                    <tr>
-                                                        <th>Name</th>
-                                                        <th>Total</th>
-                                                        <th>Won</th>
-                                                        <th>Lost</th>
-                                                        <th>Tied</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                `
-
-                        for(let i = 0; i < scores.length; i++) {
-                               table +=  `<tr>
-                                <td>${scores[i].name} </td>
-                                <td>${scores[i].total} </td>
-                                <td>${scores[i].won} </td>
-                                <td>${scores[i].lost} </td>
-                                <td>${scores[i].tied} </td>
-                                </tr>
-                                `
-                        }
-                    	table += "</tbody> </table>"
-                        info.innerHTML = table
-                    }
-
-
-
-
-         function table(){
-             	    console.log(data)
-             		let info = document.getElementById('table')
-                     let table = ""
-                                     table = `<table class="table table-bordered text-light">
-
-             		                 <thead class="thead-dark">
-             		                    <tr>
-             		                        <th>Game ID</th>
-             								<th>Creation Date</th>
-             								<th>Players</th>
-             						   </tr>
-             						 </thead>
-             						 <tbody>`
-             		  for(let i = 0; i < data.length; i++){
-
-             		  let gpid = null
-             		  let gameId = null
-
-             		    if(player == "guest" || (data[i].gameplayers.length == 2 && data[i].gameplayers.every(e => e.player.id_player != player.id_player))){
-                             table +=  `<tr>
-                                 <td>${data[i].id}</td>
-                                 <td>${data[i].creationDate}</td>
-                                 <td>${data[i].gameplayers.map(e => e.player.username).join(" <br /> ")}</td>
-                             </tr>
-                             `
-             		    }else if(data[i].gameplayers.some(e => e.player.id_player == player.id_player)){
-             		        gpid = data[i].gameplayers.filter(e => e.player.id_player == player.id_player)[0].id_gamePlayer
-             		        table +=  `<tr>
-                                 <td>${data[i].id}</td>
-                                 <td>${data[i].creationDate}</td>
-                                 <td>${data[i].gameplayers.map(e => e.player.username).join(" <br /> ")}</td>
-                                 <td><button onclick="enterGame(${gpid})">Enter</button></td>
-                             </tr>
-                          `
-             		    }else if(data[i].gameplayers.length == 1){
-             		        gameId = data[i].id
-             		        table +=  `<tr>
-                                 <td>${data[i].id}</td>
-                                 <td>${data[i].creationDate}</td>
-                                 <td>${data[i].gameplayers.map(e => e.player.username).join(" <br /> ")}</td>
-                                 <td><button onclick="joinGame(${gameId})">Join Game</button></td>
-                             </tr>
-                             `
-             		    }
-             		  }
-             		  table += "</tbody> </table>"
-                       info.innerHTML = table
-                  }
-
-                       function enterGame(gpid){
-                              window.location.href='/web/game.html?gp='+gpid
-                           }
-
-
-
-
-
-
-
-
+            })
+            .then(function (response) {
+                if (response.ok) {
+                    location.reload();
+                }
+                throw new Error(response);
+            })
+            .catch(ex => console.log(ex));
+    }
+}

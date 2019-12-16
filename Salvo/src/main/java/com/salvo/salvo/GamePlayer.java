@@ -37,12 +37,7 @@ public class GamePlayer {
 
     public GamePlayer (){}
 
-    public long getId() {
-        return id;
-    }
-
     public GamePlayer (Player player, Game game){
-
         this.player = player;
         this.game = game;
     }
@@ -75,6 +70,10 @@ public class GamePlayer {
 
     public Game getGame() {
         return game;
+    }
+
+    public long getId() {
+        return id;
     }
 
     public void setGame(Game game) {
