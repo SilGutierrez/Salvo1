@@ -56,7 +56,6 @@ public class Player {
         Map<String, Object> dto = new LinkedHashMap<String, Object>();
         dto.put("playerId", getId());
         dto.put("userName", getUserName());
-        dto.put("email", getEmail());
         return dto;
     }
 

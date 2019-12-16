@@ -177,3 +177,11 @@ function ship(json){
                        function enterGame(gpid){
                               window.location.href='/web/game.html?gp='+gpid
                            }
+
+
+
+
+
+
+
+

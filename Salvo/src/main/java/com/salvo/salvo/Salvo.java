@@ -1,5 +1,6 @@
 package com.salvo.salvo;
 
+import com.sun.tools.javac.file.Locations;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
