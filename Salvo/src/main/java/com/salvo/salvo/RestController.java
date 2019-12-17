@@ -1,5 +1,6 @@
 package com.salvo.salvo;
 
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -224,5 +225,36 @@ public class RestController {
             }
         }
         return false;
+    }
+
+
+    @RequestMapping(path = "/games/players/{gamePlayerId}/salvoes", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, Object>> addSalvo(@PathVariable Long gamePlayerId, @RequestBody List<String> shots) {
+        ResponseEntity<Map<String, Object>> response;
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (isGuest(authentication)) {
+            response = new ResponseEntity(makeMap("error", "you must be lloggedin"), HttpStatus.UNAUTHORIZED);
+
+        } else {
+            GamePlayer gamePlayer = gamePlayerRepository.findById(gamePlayerId).orElse(null);
+            Player player = playerRepository.findPlayerByUserName(authentication.getName());
+            if (gamePlayer == null) {
+                response = new ResponseEntity(makeMap("error", "no such game"), HttpStatus.NOT_FOUND);
+            } else if (gamePlayer.getPlayer().getId() != player.getId()) {
+                response = new ResponseEntity(makeMap("error", "this is not your game"), HttpStatus.UNAUTHORIZED);
+            } else if (shots.size() != 5) {
+                response = new ResponseEntity(makeMap("error", "worng number of shots"), HttpStatus.FORBIDDEN);
+            } else {
+                int turn = gamePlayer.getSalvoes().size() + 1;
+
+                Salvo salvo = new Salvo(turn, shots);
+                gamePlayer.addSalvo(salvo);
+
+                gamePlayerRepository.save(gamePlayer);
+
+                response = new ResponseEntity(makeMap("success", "salvo adde"), HttpStatus.CREATED);
+            }
+        }
+        return response;
     }
 }

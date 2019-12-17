@@ -146,3 +146,29 @@ function sendShips() {
             .catch(ex => console.log(ex));
     }
 }
+
+      function shoot (shots, gamePlayerId){
+      let url='/api/games/players/' + gamePlayerId +'/salvoes'
+      let init={
+      method:'Post',
+      herders:{
+      "content-type": "application/json"
+      },
+      body: JSON.stringify(shots)
+      }
+      fetch (url, init)
+      .then (res => {
+      if (res.ok){
+      return res.json()
+      } else{
+      return Promise.reject(res.json())
+      }
+
+      })
+
+      .then (json => {
+      getGameDta (gp)
+      })
+      .catch (error => error)
+      .then (error => console.log (error))
+      }
