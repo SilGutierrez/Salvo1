@@ -1,7 +1,12 @@
 let gp = getParameterByName('gp')
-
-let jugador = '';
-let opositor = '';
+var jugador = {
+    username: '',
+    id: ''
+};
+var opositor = {
+    username: '',
+    id: ''
+};
 
 var oponentObject;
 var localObject;
@@ -16,7 +21,7 @@ fetch("/api/game_view/" + gp)
         console.log(json);
         data(json.gamePlayer)
         ship(json.ship);
-        salvo(json.salvoes);
+        printSalvo(json.salvoes);
     })
     .catch(ex => console.log(ex));
 
@@ -30,35 +35,24 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
-function salvo(json) {
+/* PRINT DATA */
+function printSalvo(json) {
     for (let i = 0; i < json.length; i++) {
-
-        if (json[i].player == jugador.playerId) {
-            let location = json[i].locations;
-
+        if (json[i].player == jugador.id) {
             json[i].locations.forEach(element => {
-                console.log(element);
                 document.getElementById(`salvo${element}`).style.backgroundColor = "red";
             });
         } else {
-            let location = json[i].locations;
-
             json[i].locations.forEach(element => {
-                console.log(element);
-                document.getElementById(`ships${element}`).style.backgroundColor = "red";
+                document.getElementById(`ships${element}`).style.backgroundColor = "blue";
             });
         }
-
-
-
     }
 }
 
 function ship(json) {
-
     if (json.length != 0) {
         for (let i = 0; i < json.length; i++) {
-            console.log(json[i])
             let location = json[i].locations;
             let firstLocation = location[0];
             let secondLocation = location[1];
@@ -67,7 +61,6 @@ function ship(json) {
             } else {
                 createShips(json[i].type, location.length, 'vertical', document.getElementById('ships' + location[0]), true);
             }
-
         }
     } else {
         createShips('carrier', 5, 'horizontal', document.getElementById('dock'), false)
@@ -80,18 +73,18 @@ function ship(json) {
 }
 
 function data(json) {
-
     for (let i = 0; i < json.length; i++) {
-
         if (json[i].gamePlayerId == gp) {
-            jugador = json[i].player
-            createGamePlayer(json[i].player.email, 'jugador1', document.getElementById("jugador"));
-
+            let aux = json[i].player;
+            jugador.username = aux.userName;
+            jugador.id = aux.playerId;
+            createGamePlayer(aux.userName, 'jugador1', document.getElementById("jugador"));
         } else {
-            opositor = json[i].player
-            createGamePlayer(json[i].player.email, 'opositor', document.getElementById("opositor"));
+            let aux = json[i].player;
+            opositor.username = aux.userName;
+            opositor.id = aux.playerId;
+            createGamePlayer(aux.userName, 'opositor', document.getElementById("opositor"));
         }
-
     }
 }
 
@@ -99,13 +92,21 @@ function createGamePlayer(email, text, element) {
     element.innerHTML = text + ": " + email
 }
 
-const ships = ['carrier', 'battleship', 'submarine', 'destroyer', 'patrol_boat'];
 
-var shipsLocated = [];
+/* BUTTONS */
 document.getElementById("collect-boats").addEventListener("click", function () {
     collectShips();
     sendShips();
 });
+
+document.getElementById("collect-salvos").addEventListener("click", function () {
+    shoot(salvoArray);
+});
+
+
+/* SHIPS */
+var shipsLocated = [];
+const ships = ['carrier', 'battleship', 'submarine', 'destroyer', 'patrol_boat'];
 
 function collectShips() {
     for (let i = 0; i < ships.length; i++) {
@@ -147,28 +148,47 @@ function sendShips() {
     }
 }
 
-      function shoot (shots, gamePlayerId){
-      let url='/api/games/players/' + gamePlayerId +'/salvoes'
-      let init={
-      method:'Post',
-      herders:{
-      "content-type": "application/json"
-      },
-      body: JSON.stringify(shots)
-      }
-      fetch (url, init)
-      .then (res => {
-      if (res.ok){
-      return res.json()
-      } else{
-      return Promise.reject(res.json())
-      }
 
-      })
+/* SALVOS */
+function shoot(shots) {
+    var idGamePlayer = getParameterByName('gp');
+    let url = '/api/games/players/' + idGamePlayer + '/salvoes'
+    let init = {
+        method: 'POST',
+        headers: {
+            "content-type": "application/json"
+        },
+        body: JSON.stringify(shots)
+    }
+    fetch(url, init)
+        .then(res => {
+            if (res.ok) {
+                location.reload();
+            } else {
+                return Promise.reject(res.json())
+            }
 
-      .then (json => {
-      getGameDta (gp)
-      })
-      .catch (error => error)
-      .then (error => console.log (error))
-      }
+        })
+        .catch(error => error)
+        .then(error => console.log(error))
+}
+
+var salvoArray = [];
+$("#salvoGrid .grid-cell").click(function (evt) {
+    if (salvoArray.length < 5) {
+        let clicked = evt.currentTarget;
+        clicked.style.backgroundColor = "green";
+        let location = clicked.dataset.y + clicked.dataset.x;
+        if (salvoArray.includes(location)) {
+            alert("Posicion ya incluida")
+        } else {
+            //document.getElementById("positionList").innerHTML += `<li class="collection-item">${location}</li>`;
+            salvoArray.push(location);
+        }
+    }
+    console.log(salvoArray.length);
+    if (salvoArray.length == 5) {
+        console.log(salvoArray);
+        document.getElementById("collect-salvos").disabled = false;
+    }
+});

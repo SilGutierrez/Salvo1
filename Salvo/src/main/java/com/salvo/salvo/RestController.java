@@ -228,10 +228,11 @@ public class RestController {
     }
 
 
-    @RequestMapping(path = "/games/players/{gamePlayerId}/salvoes", method = RequestMethod.POST)
+    @RequestMapping(path = "/api/games/players/{gamePlayerId}/salvoes", method = RequestMethod.POST)
     public ResponseEntity<Map<String, Object>> addSalvo(@PathVariable Long gamePlayerId, @RequestBody List<String> shots) {
         ResponseEntity<Map<String, Object>> response;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println(shots);
         if (isGuest(authentication)) {
             response = new ResponseEntity(makeMap("error", "you must be lloggedin"), HttpStatus.UNAUTHORIZED);
 
@@ -252,7 +253,7 @@ public class RestController {
 
                 gamePlayerRepository.save(gamePlayer);
 
-                response = new ResponseEntity(makeMap("success", "salvo adde"), HttpStatus.CREATED);
+                response = new ResponseEntity(makeMap("success", "salvo added"), HttpStatus.OK);
             }
         }
         return response;

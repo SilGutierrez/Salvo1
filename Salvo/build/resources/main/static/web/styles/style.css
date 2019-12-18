@@ -29,6 +29,15 @@
     border-radius: 0 0 10px 10px;
     height: 330px;
     width: 330px;
+}
+
+#salvoGrid{
+    background-image: url(../assets/ocean.gif);
+    background-size: cover;
+    border: 2px solid rgb(128,128,128);
+    border-radius: 0 0 10px 10px;
+    height: 330px;
+    width: 330px;
     
 }
 
@@ -201,6 +210,11 @@
         width: 385px;
         border-radius: 10px 0 0 10px;
     }
+    #salvoGrid{
+        height: 385px;
+        width: 385px;
+        border-radius: 10px 0 0 10px;
+    }
 
     .grid-cell{
         width: 35px;
@@ -233,6 +247,11 @@
     }
 
     #grid{
+        height: 495px;
+        width: 495px;
+        border-radius: 10px 0 0 10px;
+    }
+    #salvoGrid{
         height: 495px;
         width: 495px;
         border-radius: 10px 0 0 10px;
