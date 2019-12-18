@@ -69,8 +69,6 @@ function printSalvo(json) {
             });
         }
     }
-
-
 }
 
 function ship(json) {
