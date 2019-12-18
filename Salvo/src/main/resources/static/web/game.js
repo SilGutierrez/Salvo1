@@ -21,7 +21,7 @@ fetch("/api/game_view/" + gp)
         console.log(json);
         data(json.gamePlayer)
         ship(json.ship);
-        printSalvo(json.salvoes);
+        printSalvo(json);
     })
     .catch(ex => console.log(ex));
 
@@ -37,17 +37,40 @@ function getParameterByName(name, url) {
 
 /* PRINT DATA */
 function printSalvo(json) {
-    for (let i = 0; i < json.length; i++) {
-        if (json[i].player == jugador.id) {
-            json[i].locations.forEach(element => {
-                document.getElementById(`salvo${element}`).style.backgroundColor = "red";
+    let ships = [];
+    let hitAux = [];
+
+    for (let i = 0; i < json.hits.locations.length; i++) {
+        hitAux.push(json.hits.locations[i]);
+    }
+
+    //document.getElementById(`salvo${position}`).style.backgroundColor = "red";
+    for (let i = 0; i < json.ship.length; i++) {
+        json.ship[i].locations.forEach(element => {
+            ships.push(element);
+        })
+    }
+
+    for (let i = 0; i < json.salvoes.length; i++) {
+        let aux = json.salvoes[i];
+        if (aux.player != jugador.id) {
+            aux.locations.forEach(element => {
+                if (ships.includes(element)) {
+                    document.getElementById(`ships${element}`).style.backgroundColor = "blue";
+                }
             });
         } else {
-            json[i].locations.forEach(element => {
-                document.getElementById(`ships${element}`).style.backgroundColor = "blue";
+            aux.locations.forEach(element => {
+                if (hitAux.includes(element)) {
+                    document.getElementById(`salvo${element}`).style.backgroundColor = "red";
+                } else {
+                    document.getElementById(`salvo${element}`).style.backgroundColor = "pink";
+                }
             });
         }
     }
+
+
 }
 
 function ship(json) {

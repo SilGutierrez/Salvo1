@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @org.springframework.web.bind.annotation.RestController
@@ -78,6 +79,8 @@ public class RestController {
             dto.put("gamePlayer", gamePlayer.getGame().getGamePlayerSet().stream().map(GamePlayer::getGamePlayerData));
             dto.put("ship", gamePlayer.getShipSet().stream().map(Ship::getShipData));
             dto.put("salvoes", gamePlayer.getGame().getGamePlayerSet().stream().flatMap(gp -> gp.getSalvoes().stream().map(Salvo::salvoDto)));
+            dto.put("hits", this.validacionBarcosDañados(gamePlayer));
+            dto.put("salvoAvailable", gamePlayer.getBarcosDisponibles());
         } else {
             dto.put("error", "no such game");
 
@@ -257,5 +260,79 @@ public class RestController {
             }
         }
         return response;
+    }
+
+    private Map<String, Object> validacionBarcosDañados(GamePlayer gamePlayer) {
+        Map<String, Object> dto = new LinkedHashMap<>();
+        GamePlayer gamePlayerEnemy = gamePlayer.getGame().getGamePlayerSet().stream().filter(e -> e.getId() != gamePlayer.getId()).findFirst().orElse(null);
+        if (gamePlayer.getShipSet().size() != 0 && gamePlayer.getSalvoes().size() != 0) {
+            miValidacion(gamePlayer);
+            assert gamePlayerEnemy != null;
+            ArrayList<String> salvoPosition = chargePositions(gamePlayer.getSalvoes());
+            ArrayList<Ship> shipEnemyPosition = new ArrayList<>(gamePlayerEnemy.getShipSet());
+
+            ArrayList<String> hits = new ArrayList<>();
+            ArrayList<String> shipDestroyed = new ArrayList<>();
+
+            shipEnemyPosition.forEach(e -> {
+                AtomicInteger counter = new AtomicInteger();
+                e.getLocations().forEach(w -> {
+                    if (salvoPosition.contains(w)) {
+                        hits.add(w);
+                        counter.getAndIncrement();
+                    }
+                });
+                if (Integer.parseInt(String.valueOf(counter)) == e.getLocations().size()) {
+                    shipDestroyed.add(e.getType());
+                }
+            });
+            dto.put("locations", hits);
+            dto.put("ships", shipDestroyed);
+
+            return dto;
+        } else {
+            return null;
+        }
+    }
+
+    private void miValidacion(GamePlayer gamePlayer) {
+        GamePlayer gamePlayerEnemy = gamePlayer.getGame().getGamePlayerSet().stream().filter(e -> e.getId() != gamePlayer.getId()).findFirst().orElse(null);
+        if (gamePlayer.getShipSet().size() != 0 && gamePlayer.getSalvoes().size() != 0) {
+            assert gamePlayerEnemy != null;
+            //Enemy Salvoes
+            ArrayList<String> salvoEnemyPosition = chargePositions(gamePlayerEnemy.getSalvoes());
+
+            //My Ships
+            ArrayList<Ship> localShipPosition = new ArrayList<>(gamePlayer.getShipSet());
+            ArrayList<String> shipDestroyed = new ArrayList<>();
+
+            //Search if I hit a ship
+            localShipPosition.forEach(e -> {
+                AtomicInteger counter = new AtomicInteger();
+                e.getLocations().forEach(w -> {
+                    if (salvoEnemyPosition.contains(w)) {
+                        counter.getAndIncrement();
+                    }
+                });
+                if (Integer.parseInt(String.valueOf(counter)) == e.getLocations().size()) {
+                    shipDestroyed.add(e.getType());
+                }
+            });
+
+            int totalShip = 5;
+            int newShip = totalShip - shipDestroyed.size();
+            //System.out.println(newShip);
+
+            //Search if enemy shipped my hits
+            gamePlayer.setBarcosDisponibles(newShip);
+            gamePlayerRepository.save(gamePlayer);
+        }
+    }
+
+
+    private ArrayList<String> chargePositions(Set<Salvo> salvoArray) {
+        ArrayList<String> aux = new ArrayList<>();
+        salvoArray.forEach(e -> aux.addAll(e.getLocations()));
+        return aux;
     }
 }

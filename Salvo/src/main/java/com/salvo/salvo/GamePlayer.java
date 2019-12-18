@@ -34,6 +34,8 @@ public class GamePlayer {
     @OneToMany(mappedBy = "gamePlayer", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Salvo> salvoSet =new HashSet<>();
 
+    private int barcosDisponibles;
+
 
     public GamePlayer (){}
 
@@ -79,6 +81,15 @@ public class GamePlayer {
     public void setGame(Game game) {
         this.game = game;
     }
+
+    public int getBarcosDisponibles() {
+        return barcosDisponibles;
+    }
+
+    public void setBarcosDisponibles(int barcosDisponibles) {
+        this.barcosDisponibles = barcosDisponibles;
+    }
+
 
     public Player getPlayer() {
         return player;

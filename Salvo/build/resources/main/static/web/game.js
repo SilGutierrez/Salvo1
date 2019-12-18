@@ -1,7 +1,12 @@
 let gp = getParameterByName('gp')
-
-let jugador = '';
-let opositor = '';
+var jugador = {
+    username: '',
+    id: ''
+};
+var opositor = {
+    username: '',
+    id: ''
+};
 
 var oponentObject;
 var localObject;
@@ -33,13 +38,13 @@ function getParameterByName(name, url) {
 /* PRINT DATA */
 function printSalvo(json) {
     for (let i = 0; i < json.length; i++) {
-        if (json[i].player == jugador.playerId) {
+        if (json[i].player == jugador.id) {
             json[i].locations.forEach(element => {
                 document.getElementById(`salvo${element}`).style.backgroundColor = "red";
             });
         } else {
             json[i].locations.forEach(element => {
-                document.getElementById(`ships${element}`).style.backgroundColor = "red";
+                document.getElementById(`ships${element}`).style.backgroundColor = "blue";
             });
         }
     }
@@ -70,11 +75,15 @@ function ship(json) {
 function data(json) {
     for (let i = 0; i < json.length; i++) {
         if (json[i].gamePlayerId == gp) {
-            let jugador = json[i].player;
-            createGamePlayer(jugador.userName, 'jugador1', document.getElementById("jugador"));
+            let aux = json[i].player;
+            jugador.username = aux.userName;
+            jugador.id = aux.playerId;
+            createGamePlayer(aux.userName, 'jugador1', document.getElementById("jugador"));
         } else {
-            let opositor = json[i].player;
-            createGamePlayer(opositor.userName, 'opositor', document.getElementById("opositor"));
+            let aux = json[i].player;
+            opositor.username = aux.userName;
+            opositor.id = aux.playerId;
+            createGamePlayer(aux.userName, 'opositor', document.getElementById("opositor"));
         }
     }
 }
@@ -153,17 +162,12 @@ function shoot(shots) {
     }
     fetch(url, init)
         .then(res => {
-            console.log(res);
             if (res.ok) {
-                return res.json()
+                location.reload();
             } else {
                 return Promise.reject(res.json())
             }
 
-        })
-        .then(json => {
-            console.log(json);
-            //getGameDta(gp)
         })
         .catch(error => error)
         .then(error => console.log(error))
